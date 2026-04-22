@@ -6,6 +6,7 @@ import { AuthProvider } from "./providers/auth-provider";
 import { LoadingBarContainer } from 'react-top-loading-bar';
 import { Toaster } from '@/components/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import DayTransitionModule from './modules/day-transition/index';
 
 const { BASE_URL } = import.meta.env;
 
@@ -35,6 +36,7 @@ export default function App() {
                         <QueryClientProvider client={queryClient}>
                             <AuthProvider>
                                 <Toaster />
+                                <DayTransitionModule />
                                 <ModuleProvider />
                             </AuthProvider>
                         </QueryClientProvider>

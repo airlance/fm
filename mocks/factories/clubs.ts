@@ -403,15 +403,20 @@ export const clubsCreate = async () => {
             throw new Error(`League ${clubData.leagueName} not found`);
         }
 
-        await db.club.create({
+        const club =await db.club.create({
             id: id++,
             name: clubData.name,
-            competitionId: league.id,
             pos: i++,
             p: 0, 
             gd: 0, 
             pts: 0,
             color: 'bg-zinc-800',
+        });
+
+        await db.competitionClub.create({
+            id: id++,
+            clubId: club.id,
+            competitionId: league.id,
         });
     });
 };

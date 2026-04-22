@@ -12,6 +12,5 @@ export const managerCreate = async () => {
         name: 'Yurii Maksymov',
         age: 45,
         clubId: club.id,
-        competitionId: club.competitionId,
     });
 }
