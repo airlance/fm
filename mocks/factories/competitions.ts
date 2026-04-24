@@ -5,7 +5,7 @@ export const europeancompetitionsData = [
     { name: 'Premier League', country: 'England', type: 'league' },
     { name: 'La Liga', country: 'Spain', type: 'league' },
     { name: 'Bundesliga', country: 'Germany', type: 'league' },
-    { name: 'Serie A', country: 'Italy', type: 'league' },
+    { name: 'Seria A', country: 'Italy', type: 'league' },
     { name: 'Ligue 1', country: 'France', type: 'league' },
     { name: 'Primeira Liga', country: 'Portugal', type: 'league' },
     { name: 'Eredivisie', country: 'Netherlands', type: 'league' },

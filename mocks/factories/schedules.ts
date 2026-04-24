@@ -4,7 +4,7 @@ const scheduleFixturesData = [
     {
         date: '2026-04-20',
         time: '20:00',
-        competition: 'Serie A',
+        competition: 'Seria A',
         home: 'Juventus',
         away: 'Inter Milan',
         venue: 'Allianz Stadium',
@@ -13,7 +13,7 @@ const scheduleFixturesData = [
     {
         date: '2026-04-27',
         time: '18:30',
-        competition: 'Serie A',
+        competition: 'Seria A',
         home: 'Atalanta',
         away: 'Juventus',
         venue: 'Gewiss Stadium',
@@ -31,7 +31,7 @@ const scheduleFixturesData = [
     {
         date: '2026-05-11',
         time: '20:45',
-        competition: 'Serie A',
+        competition: 'Seria A',
         home: 'Fiorentina',
         away: 'Juventus',
         venue: 'Artemio Franchi',
