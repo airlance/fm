@@ -37,6 +37,7 @@ export default class DrawEvent implements IEvent {
                         awayClubId: clubIds[a], 
                         date: date.toISOString().slice(0, 19), // обрезаем для красоты
                         roundId: roundId,
+                        status: 'scheduled',
                     });
                 }
                 

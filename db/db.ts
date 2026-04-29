@@ -12,7 +12,7 @@ db.version(1).stores({
     club: '++id, name, countryId',
     seasonClub: '++id, seasonId, teamId, [seasonId+teamId]',
     round: '++id, name, seasonId',
-    match: '++id, date, homeClubId, awayClubId, roundId', //homeGoals, awayGoals,
+    match: '++id, date, homeClubId, awayClubId, roundId', //homeGoals, awayGoals, status
 });
 
 export default db;
