@@ -1,5 +1,5 @@
 import type { IEvent } from "./IEvent";
-import MatchesEvent from "./matchesEvent";
+import MatcheEvent from "./MatcheEvent";
 import DrawEvent from "./DrawEvent";
 
 export default class Dispatcher implements IEvent {
@@ -9,7 +9,7 @@ export default class Dispatcher implements IEvent {
     constructor() {
         this.events = [
             new DrawEvent(),
-            new MatchesEvent(),
+            new MatcheEvent(),
         ];
     }
 

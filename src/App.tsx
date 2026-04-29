@@ -9,8 +9,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import DayTransitionModule from './modules/day-transition/index';
 import useDatabaseSync from '../db/useDatabaseSync';
+import RouterProvider from './providers/RouterProvider';
 
 const { BASE_URL } = import.meta.env;
+
+
 
 export default function App() {
     const isDatabaseReady = useDatabaseSync();
@@ -31,13 +34,15 @@ export default function App() {
             <HelmetProvider>
                 <LoadingBarContainer>
                     <BrowserRouter basename={BASE_URL}>
-                        <QueryClientProvider client={queryClient}>
-                            <AuthProvider>
-                                <Toaster />
-                                <DayTransitionModule />
-                                <ModuleProvider />
-                            </AuthProvider>
-                        </QueryClientProvider>
+                        <RouterProvider >
+                            <QueryClientProvider client={queryClient}>
+                                <AuthProvider>
+                                    <Toaster />
+                                    <DayTransitionModule />
+                                    <ModuleProvider />
+                                </AuthProvider>
+                            </QueryClientProvider>
+                        </RouterProvider>
                     </BrowserRouter>
                 </LoadingBarContainer>
             </HelmetProvider>

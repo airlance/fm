@@ -27,6 +27,7 @@ const routes: ModuleRoute[] = [
     { path: 'dynamics', module: lazy(() => import('@/modules/dynamics')) },
     { path: 'finances', module: lazy(() => import('@/modules/finances')) },
     { path: 'team', module: lazy(() => import('@/modules/team')) },
+    { path: 'matches', module: lazy(() => import('@/modules/matches')) },
 ];
 
 export function ModuleProvider() {
