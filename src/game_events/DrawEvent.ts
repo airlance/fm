@@ -15,7 +15,35 @@ export default class DrawEvent implements IEvent {
         const clubIds = (await db.table('seasonClub').where('seasonId').equals(draw.seasonId).toArray()).map(c => c.clubId || 0);
 
         const numClubs = clubIds.length;
+        if (numClubs < 2 || numClubs % 2 !== 0) return;
+
+        const firstLegRounds = numClubs - 1;
         const numRounds = (numClubs - 1) * 2;
+        const firstLegPairs: { homeClubId: number; awayClubId: number }[][] = [];
+
+        const rotatingClubs = [...clubIds];
+        const fixedClubId = rotatingClubs[0];
+
+        for (let round = 0; round < firstLegRounds; round++) {
+            const roundOrder = [fixedClubId, ...rotatingClubs.slice(1)];
+            const roundPairs: { homeClubId: number; awayClubId: number }[] = [];
+
+            for (let i = 0; i < numClubs / 2; i++) {
+                const leftClubId = roundOrder[i];
+                const rightClubId = roundOrder[numClubs - 1 - i];
+                const swapHomeAway = round % 2 !== 0;
+                const homeClubId = swapHomeAway ? rightClubId : leftClubId;
+                const awayClubId = swapHomeAway ? leftClubId : rightClubId;
+                roundPairs.push({ homeClubId, awayClubId });
+            }
+
+            firstLegPairs.push(roundPairs);
+
+            const lastClubId = rotatingClubs.pop();
+            if (lastClubId !== undefined) {
+                rotatingClubs.splice(1, 0, lastClubId);
+            }
+        }
 
         await db.transaction('rw', [db.table('round'), db.table('match')], async () => {
             for (let round = 0; round < numRounds; round++) {           
@@ -28,13 +56,16 @@ export default class DrawEvent implements IEvent {
                     seasonId: draw.seasonId 
                 });
 
-                for (let i = 0; i < numClubs / 2; i++) {
-                    let h = (round + i) % numClubs;
-                    let a = (round + numClubs - 1 - i) % numClubs;
-                    
+                const isSecondLeg = round >= firstLegRounds;
+                const sourceRoundPairs = firstLegPairs[round % firstLegRounds] || [];
+
+                for (const pair of sourceRoundPairs) {
+                    const homeClubId = isSecondLeg ? pair.awayClubId : pair.homeClubId;
+                    const awayClubId = isSecondLeg ? pair.homeClubId : pair.awayClubId;
+
                     matches.push({
-                        homeClubId: clubIds[h], 
-                        awayClubId: clubIds[a], 
+                        homeClubId,
+                        awayClubId,
                         date: date.toISOString().slice(0, 19), // обрезаем для красоты
                         roundId: roundId,
                         status: 'scheduled',

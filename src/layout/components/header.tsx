@@ -13,10 +13,12 @@ import {
 } from "lucide-react";
 import { useLayout } from "./use-layout";
 import { NavbarMenu } from './navbar-menu';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useDateTime, nextDateTimeAction } from "@/state/useDateTime";
 import Settings from "./menu/settings";
+import { useLiveQuery } from "dexie-react-hooks";
+import db from "@/../db/db";
 
 // Mock club data - replace with real data from context/props
 const clubData = {
@@ -29,8 +31,84 @@ const clubData = {
 export function Header() {
     const { toggleSidebar, sidebarCollapsed } = useLayout();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const dateTime = useDateTime(state => state.dateTime);
+    const leagues = useLiveQuery(
+        async () =>
+            (await db.table('competition').toArray())
+                .filter((competition) => competition.type === 'league')
+                .sort((a, b) => a.id - b.id),
+        []
+    );
+
+    const leagueMatch = pathname.match(/^\/league\/(\d+)(?:\/|$)/);
+    const leagueTeamMatch = pathname.match(/^\/league\/(\d+)\/team\/(\d+)(?:\/|$)/);
+    const currentLeagueId = leagueMatch ? Number(leagueMatch[1]) : null;
+    const currentClubId = leagueTeamMatch ? Number(leagueTeamMatch[2]) : null;
+    const isLeaguePage = currentLeagueId !== null;
+    const isLeagueTeamPage = currentLeagueId !== null && currentClubId !== null;
+    const leagueIdForTeams = leagueTeamMatch ? Number(leagueTeamMatch[1]) : null;
+
+    const leagueTeams = useLiveQuery(
+        async () => {
+            if (leagueIdForTeams === null) return [];
+
+            const seasons = await db.table('season').where('competitionId').equals(leagueIdForTeams).toArray();
+            if (seasons.length === 0) return [];
+
+            const activeSeason =
+                seasons.find((s) => s.isActive) ||
+                [...seasons].sort((a, b) => (b.id || 0) - (a.id || 0))[0];
+
+            const seasonClubs = await db.table('seasonClub').where('seasonId').equals(activeSeason.id).toArray();
+            const clubs = await Promise.all(
+                seasonClubs.map(async (sClub) => db.table('club').get(sClub.clubId))
+            );
+
+            return clubs
+                .filter((club): club is { id: number; name: string } => Boolean(club))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        },
+        [leagueIdForTeams]
+    );
+
+    const browseLeague = (direction: 'up' | 'down') => {
+        if (!isLeaguePage || !leagues || leagues.length === 0 || currentLeagueId === null) return;
+
+        const currentIndex = leagues.findIndex((league) => league.id === currentLeagueId);
+        if (currentIndex === -1) return;
+
+        const nextIndex =
+            direction === 'up'
+                ? (currentIndex - 1 + leagues.length) % leagues.length
+                : (currentIndex + 1) % leagues.length;
+
+        navigate(`/league/${leagues[nextIndex].id}`);
+    };
+
+    const browseLeagueTeam = (direction: 'up' | 'down') => {
+        if (!isLeagueTeamPage || !leagueTeams || leagueTeams.length === 0 || currentClubId === null || currentLeagueId === null) return;
+
+        const currentIndex = leagueTeams.findIndex((club) => club.id === currentClubId);
+        if (currentIndex === -1) return;
+
+        const nextIndex =
+            direction === 'up'
+                ? (currentIndex - 1 + leagueTeams.length) % leagueTeams.length
+                : (currentIndex + 1) % leagueTeams.length;
+
+        navigate(`/league/${currentLeagueId}/team/${leagueTeams[nextIndex].id}`);
+    };
+
+    const browseEntities = (direction: 'up' | 'down') => {
+        if (isLeagueTeamPage) {
+            browseLeagueTeam(direction);
+            return;
+        }
+
+        browseLeague(direction);
+    };
 
     return (
         <div className="flex flex-col">
@@ -85,10 +163,18 @@ export function Header() {
 
                     {/* Up/Down arrow to browse entities */}
                     <div className="flex flex-col gap-0">
-                        <button className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors">
+                        <button
+                            onClick={() => browseEntities('up')}
+                            disabled={!isLeaguePage}
+                            className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
                             <ChevronUp className="size-3.5" />
                         </button>
-                        <button className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors">
+                        <button
+                            onClick={() => browseEntities('down')}
+                            disabled={!isLeaguePage}
+                            className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
                             <ChevronDown className="size-3.5" />
                         </button>
                     </div>

@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import db from '@/../db/db';
 import { useManager } from '@/hooks/useManager';
 import { useDateTime } from '@/state/useDateTime';
+import { Link } from 'react-router-dom';
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -381,10 +382,30 @@ function PlayerStatsPanel() {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export function Page() {
+    const leagues = useLiveQuery(
+        async () => (await db.table('competition').toArray()).filter((c) => c.type === 'league'),
+        []
+    );
+
     return (
         <div className="h-[calc(100vh-120px)] px-2.5 pb-2.5">
             <ScrollArea className="h-full">
                 <div className="pr-2 space-y-2 pb-4">
+                    <div className="border border-zinc-700/60 rounded-lg bg-zinc-900/80 p-3">
+                        <p className="text-xs font-bold uppercase tracking-wider text-teal-400 mb-2">Leagues</p>
+                        <div className="flex flex-wrap gap-2">
+                            {(leagues || []).map((league) => (
+                                <Link
+                                    key={league.id}
+                                    to={`/league/${league.id}`}
+                                    className="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition-colors"
+                                >
+                                    {league.name} (id: {league.id})
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Top row — 3-column layout */}
                     <div className="grid grid-cols-[280px_1fr_200px] gap-2">
                         {/* Left: Standings */}
