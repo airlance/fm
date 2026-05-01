@@ -11,8 +11,6 @@ const routes: ModuleRoute[] = [
     { path: 'home', module: lazy(() => import('@/modules/home')) },
     { path: 'inbox', module: lazy(() => import('@/modules/inbox')) },
     { path: 'competitions', module: lazy(() => import('@/modules/competitions')) },
-    { path: 'data-hub', module: lazy(() => import('@/modules/data-hub')) },
-    { path: 'medical-centre', module: lazy(() => import('@/modules/medical-centre')) },
     { path: 'staff', module: lazy(() => import('@/modules/staff')) },
     { path: 'squad', module: lazy(() => import('@/modules/squad')) },
     { path: 'tactics', module: lazy(() => import('@/modules/tactics')) },
@@ -20,7 +18,6 @@ const routes: ModuleRoute[] = [
     { path: 'scouting', module: lazy(() => import('@/modules/scouting')) },
     { path: 'transfers', module: lazy(() => import('@/modules/transfers')) },
     { path: 'schedule', module: lazy(() => import('@/modules/schedule')) },
-    { path: 'dynamics', module: lazy(() => import('@/modules/dynamics')) },
     { path: 'team', module: lazy(() => import('@/modules/team')) },
     { path: 'matches', module: lazy(() => import('@/modules/matches')) },
 ];

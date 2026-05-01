@@ -11,11 +11,8 @@ import {
     LucideInbox,
     Shirt,
     Home,
-    LucideRefreshCw,
     Target,
-    DatabaseBackup,
     Users,
-    BriefcaseMedicalIcon,
     CalendarIcon,
     Search,
     Repeat,
@@ -48,19 +45,9 @@ const MENU_CONFIG: MenuConfig[] = [
         icon: Shirt,
     },
     {
-        title: 'Dynamics',
-        path: '/dynamics',
-        icon: LucideRefreshCw,
-    },
-    {
         title: 'Tactics',
         path: '/tactics',
         icon: Target,
-    },
-    {
-        title: 'Data Hub',
-        path: '/data-hub',
-        icon: DatabaseBackup,
     },
     {
         title: 'Staff',
@@ -71,11 +58,6 @@ const MENU_CONFIG: MenuConfig[] = [
         title: 'Training',
         path: '/training',
         icon: Dumbbell,
-    },
-    {
-        title: 'Medical Centre',
-        path: '/medical-centre',
-        icon: BriefcaseMedicalIcon,
     },
     {
         title: 'Schedule',
