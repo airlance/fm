@@ -40,15 +40,15 @@ class Parser
             }
 
             $players[] = [
-                'number'       => $numberDiv ? trim($numberDiv->textContent) : null,
+                'number'         => $numberDiv ? trim($numberDiv->textContent) : null,
                 'position_group' => $numberTd ? $numberTd->getAttribute('title') : null,
-                'name'         => trim($playerLink->textContent),
-                'href'         => $playerLink->getAttribute('href'),
-                'is_captain'   => $captainIcon !== null,
-                'position'     => $positionTd ? trim($positionTd->textContent) : null,
-                'date_of_birth' => $dob ?: null,
-                'nationality'  => $natImg ? $natImg->getAttribute('title') : null,
-                'market_value' => $marketValue,
+                'name'           => trim($playerLink->textContent),
+                'href'           => $playerLink->getAttribute('href'),
+                'is_captain'     => $captainIcon !== null,
+                'position'       => $positionTd ? trim($positionTd->textContent) : null,
+                'date_of_birth'  => $dob ?: null,
+                'nationality'    => $natImg ? $natImg->getAttribute('title') : null,
+                'market_value'   => $marketValue,
             ];
         }
 
@@ -79,7 +79,108 @@ class Parser
 
         return $teams;
     }
+
+    public function getStaff(string $source): array
+    {
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML($source);
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($doc);
+
+        // Each section has a h2.content-box-headline followed by a table
+        $boxes = $xpath->query('//div[contains(@class,"box")]');
+
+        $staff = [];
+
+        foreach ($boxes as $box) {
+            // Section title
+            $h2 = $xpath->query('.//h2[contains(@class,"content-box-headline")]', $box)->item(0);
+            if (!$h2) {
+                continue;
+            }
+            $section = trim($h2->textContent);
+
+            // Rows inside this box
+            $rows = $xpath->query('.//tbody/tr', $box);
+
+            foreach ($rows as $tr) {
+                // Name + profile link (inside .hauptlink > a)
+                $nameLink = $xpath->query('.//td[contains(@class,"hauptlink")]//a', $tr)->item(0);
+                if (!$nameLink) {
+                    continue;
+                }
+
+                $name = trim($nameLink->textContent);
+                $href = $nameLink->getAttribute('href');
+
+                // Position: second <tr> inside the inline-table
+                $positionTd = $xpath->query('.//table[contains(@class,"inline-table")]//tr[2]/td', $tr)->item(0);
+                $position = $positionTd ? trim($positionTd->textContent) : null;
+
+                // Age: zentriert columns in order: age, nat, appointed, contract_expires, last_club
+                $centeredCells = $xpath->query('.//td[contains(@class,"zentriert")]', $tr);
+
+                $age              = null;
+                $nationality      = null;
+                $appointed        = null;
+                $contractExpires  = null;
+                $lastClub         = null;
+                $lastClubHref     = null;
+
+                if ($centeredCells->length >= 1) {
+                    $age = trim($centeredCells->item(0)->textContent) ?: null;
+                }
+                if ($centeredCells->length >= 2) {
+                    $natImg = $xpath->query('.//img', $centeredCells->item(1))->item(0);
+                    $nationality = $natImg ? $natImg->getAttribute('title') : null;
+                }
+                if ($centeredCells->length >= 3) {
+                    $raw = trim($centeredCells->item(2)->textContent);
+                    $appointed = $raw !== '-' && $raw !== '' ? $raw : null;
+                }
+                if ($centeredCells->length >= 4) {
+                    $raw = trim($centeredCells->item(3)->textContent);
+                    $contractExpires = $raw !== '-' && $raw !== '' ? $raw : null;
+                }
+                if ($centeredCells->length >= 5) {
+                    $lastClubLink = $xpath->query('.//a', $centeredCells->item(4))->item(0);
+                    if ($lastClubLink) {
+                        $lastClubImg = $xpath->query('.//img', $lastClubLink)->item(0);
+                        $lastClub     = $lastClubImg ? $lastClubImg->getAttribute('title') : trim($lastClubLink->textContent);
+                        $lastClubHref = $lastClubLink->getAttribute('href');
+                    }
+                }
+
+                $staff[] = [
+                    'section'          => $section,
+                    'name'             => $name,
+                    'href'             => $href,
+                    'position'         => $position,
+                    'age'              => $age,
+                    'nationality'      => $nationality,
+                    'appointed'        => $appointed,
+                    'contract_expires' => $contractExpires,
+                    'last_club'        => $lastClub,
+                    'last_club_href'   => $lastClubHref,
+                ];
+            }
+        }
+
+        return $staff;
+    }
+
+    public function staffHrefFromTeamHref(string $teamHref): string
+    {
+        // Remove saison_id segment
+        $href = preg_replace('#/saison_id/\d+$#', '', $teamHref);
+        // Replace 'startseite' with 'mitarbeiter'
+        return str_replace('/startseite/', '/mitarbeiter/', $href);
+    }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 $fixtures = [
     'italy' => [
@@ -129,8 +230,80 @@ $client = new Client([
 
 $parser = new Parser();
 
-fetchLeagues($client, $parser, $fixtures);
-fetchPlayers($client, $parser);
+//fetchLeagues($client, $parser, $fixtures);
+//fetchPlayers($client, $parser);
+fetchStaff($client, $parser);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function fetchStaff(Client $client, Parser $parser): void
+{
+    $teamsJson = file_get_contents('teams.json');
+    if (!$teamsJson) {
+        echo "teams.json not found. Run fetchLeagues() first." . PHP_EOL;
+        return;
+    }
+
+    $outputFile = 'staff.json';
+    $result = file_exists($outputFile)
+        ? json_decode(file_get_contents($outputFile), true)
+        : [];
+
+    $allTeams = json_decode($teamsJson, true);
+
+    foreach ($allTeams as $country => $leagues) {
+        if (!isset($result[$country])) {
+            $result[$country] = [];
+        }
+
+        foreach ($leagues as $leagueCode => $teams) {
+            if (!isset($result[$country][$leagueCode])) {
+                $result[$country][$leagueCode] = [];
+            }
+
+            foreach ($teams as $team) {
+                $teamHref  = $team['href'];
+                $teamTitle = $team['title'];
+
+                if (isset($result[$country][$leagueCode][$teamHref])) {
+                    echo "Skip [{$country}][{$leagueCode}] {$teamTitle} (already fetched)" . PHP_EOL;
+                    continue;
+                }
+
+                // Build staff URL: /club-slug/mitarbeiter/verein/ID
+                $staffHref = $parser->staffHrefFromTeamHref($teamHref);
+
+                echo "Fetching staff [{$country}][{$leagueCode}] {$teamTitle}: {$staffHref}" . PHP_EOL;
+
+                try {
+                    $response = $client->get($staffHref);
+                    $staff    = $parser->getStaff($response->getBody()->getContents());
+
+                    $result[$country][$leagueCode][$teamHref] = [
+                        'team'  => $teamTitle,
+                        'staff' => $staff,
+                    ];
+
+                    file_put_contents($outputFile, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+                    echo "  → " . count($staff) . " staff members saved." . PHP_EOL;
+
+                    sleep(2);
+                } catch (\Exception $e) {
+                    echo "Error fetching {$staffHref}: " . $e->getMessage() . PHP_EOL;
+                    $result[$country][$leagueCode][$teamHref] = [
+                        'team'  => $teamTitle,
+                        'staff' => [],
+                    ];
+                }
+            }
+        }
+    }
+
+    echo "All done! Saved to {$outputFile}" . PHP_EOL;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function fetchPlayers(Client $client, Parser $parser): void
 {

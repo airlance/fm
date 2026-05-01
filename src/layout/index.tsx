@@ -7,7 +7,7 @@ export function Layout() {
     return (
         <>
             <Helmet>
-                <title>Layout</title>
+                <title>Football Manager</title>
             </Helmet>
 
             <LayoutProvider
