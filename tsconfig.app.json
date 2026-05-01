@@ -17,9 +17,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@packages/*": [
-        "packages/*"
       ]
     },
     /* Bundler mode */

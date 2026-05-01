@@ -10,11 +10,8 @@ interface ModuleRoute {
 const routes: ModuleRoute[] = [
     { path: 'home', module: lazy(() => import('@/modules/home')) },
     { path: 'inbox', module: lazy(() => import('@/modules/inbox')) },
-    { path: 'club-info', module: lazy(() => import('@/modules/club-info')) },
-    { path: 'club-vision', module: lazy(() => import('@/modules/club-vision')) },
     { path: 'competitions', module: lazy(() => import('@/modules/competitions')) },
     { path: 'data-hub', module: lazy(() => import('@/modules/data-hub')) },
-    { path: 'dev-centre', module: lazy(() => import('@/modules/dev-centre')) },
     { path: 'medical-centre', module: lazy(() => import('@/modules/medical-centre')) },
     { path: 'staff', module: lazy(() => import('@/modules/staff')) },
     { path: 'squad', module: lazy(() => import('@/modules/squad')) },
@@ -22,10 +19,8 @@ const routes: ModuleRoute[] = [
     { path: 'training', module: lazy(() => import('@/modules/training')) },
     { path: 'scouting', module: lazy(() => import('@/modules/scouting')) },
     { path: 'transfers', module: lazy(() => import('@/modules/transfers')) },
-    { path: 'planner', module: lazy(() => import('@/modules/planner')) },
     { path: 'schedule', module: lazy(() => import('@/modules/schedule')) },
     { path: 'dynamics', module: lazy(() => import('@/modules/dynamics')) },
-    { path: 'finances', module: lazy(() => import('@/modules/finances')) },
     { path: 'team', module: lazy(() => import('@/modules/team')) },
     { path: 'matches', module: lazy(() => import('@/modules/matches')) },
 ];

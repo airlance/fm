@@ -1,6 +1,10 @@
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/scroll-area';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import db from '@/../db/db';
+import { useManager } from '@/hooks/useManager';
+import { useDateTime } from '@/state/useDateTime';
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -41,42 +45,6 @@ function PlayerAvatar({ bg = 'bg-zinc-700' }: { bg?: string }) {
 const TITLE_HOLDER = { team: 'Man City', badge: 'bg-sky-400' };
 
 const STAGES = 'League Phase';
-
-const LEAGUE_TABLE = [
-    { pos: '1st', team: 'Liverpool', badge: 'bg-red-600', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '2nd', team: 'R. Madrid', badge: 'bg-purple-100', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '3rd', team: 'Man City', badge: 'bg-sky-400', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '4th', team: 'FC Bayern', badge: 'bg-red-700', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '5th', team: 'PSG', badge: 'bg-blue-800', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '6th', team: 'Barcelona', badge: 'bg-red-700', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '7th', team: 'Capitoline', badge: 'bg-yellow-500', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '8th', team: 'Juventus', badge: 'bg-zinc-800', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0, highlighted: true },
-    { pos: '9th', team: 'Man UFC', badge: 'bg-red-600', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '10th', team: 'A. Madrid', badge: 'bg-red-500', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '11th', team: 'Ajax', badge: 'bg-red-700', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '12th', team: 'Feyenoord', badge: 'bg-red-600', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '13th', team: 'Borussia Dortmund', badge: 'bg-yellow-400', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '14th', team: 'Lazio', badge: 'bg-blue-300', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '15th', team: 'AS Monaco', badge: 'bg-red-600', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '16th', team: 'Milan', badge: 'bg-red-700', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '17th', team: 'Parthenope', badge: 'bg-blue-500', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '18th', team: 'RB Leipzig', badge: 'bg-red-500', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '19th', team: 'FC Porto', badge: 'bg-blue-700', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '20th', team: 'FC RB Salzburg', badge: 'bg-red-600', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-    { pos: '21st', team: 'PSV', badge: 'bg-red-500', p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0 },
-];
-
-const MATCHES = [
-    { home: 'AS Monaco', away: 'Shakhtar', homeBadge: 'bg-red-600', awayBadge: 'bg-orange-500' },
-    { home: 'AZ', away: 'Legia', homeBadge: 'bg-red-500', awayBadge: 'bg-green-600' },
-    { home: 'Blackburn', away: 'Slovan Bratislava', homeBadge: 'bg-blue-700', awayBadge: 'bg-blue-400' },
-    { home: 'Borussia Dortmund', away: 'Celtic', homeBadge: 'bg-yellow-400', awayBadge: 'bg-green-600' },
-    { home: "Borussia M'gladbach", away: 'Fenerbahçe', homeBadge: 'bg-green-700', awayBadge: 'bg-yellow-500' },
-    { home: 'FC Bayern', away: 'Man UFC', homeBadge: 'bg-red-700', awayBadge: 'bg-red-600' },
-    { home: 'Liverpool', away: 'Juventus', homeBadge: 'bg-red-600', awayBadge: 'bg-zinc-800' },
-    { home: 'R. Madrid', away: 'Capitoline', homeBadge: 'bg-purple-100', awayBadge: 'bg-yellow-500' },
-    { home: 'RB Leipzig', away: 'PSV', homeBadge: 'bg-red-500', awayBadge: 'bg-red-500' },
-];
 
 const PAST_WINNERS = [
     { team: 'Man City', year: '2025/26', badge: 'bg-sky-400' },
@@ -135,6 +103,65 @@ const YELLOW_CARDS: PlayerStat[] = [
 // ─── COMPONENTS ───────────────────────────────────────────────────────────────
 
 function StandingsTable() {
+    const manager = useManager() as { clubId: number } | undefined;
+    const seasonId = 1;
+
+    const table = useLiveQuery(
+        async () => {
+            const [seasonClubs, rounds] = await Promise.all([
+                db.table('seasonClub').where('seasonId').equals(seasonId).toArray(),
+                db.table('round').where('seasonId').equals(seasonId).toArray(),
+            ]);
+
+            const roundIds = rounds.map((r) => r.id);
+            const allMatches = roundIds.length
+                ? await db.table('match').where('roundId').anyOf(roundIds).filter((m) => m.status === 'played').toArray()
+                : [];
+
+            const rows = await Promise.all(
+                seasonClubs.map(async (sClub) => {
+                    const club = await db.table('club').get(sClub.clubId);
+                    if (!club) return null;
+
+                    const row = { club, p: 0, w: 0, d: 0, l: 0, gd: 0, pts: 0, gf: 0, ga: 0 };
+                    const clubMatches = allMatches.filter((m) => m.homeClubId === club.id || m.awayClubId === club.id);
+
+                    for (const match of clubMatches) {
+                        const isHome = match.homeClubId === club.id;
+                        const homeG = match.homeGoals || 0;
+                        const awayG = match.awayGoals || 0;
+                        const diff = homeG - awayG;
+                        row.p += 1;
+                        if (diff === 0) {
+                            row.d += 1;
+                            row.pts += 1;
+                        } else if ((isHome && diff > 0) || (!isHome && diff < 0)) {
+                            row.w += 1;
+                            row.pts += 3;
+                        } else {
+                            row.l += 1;
+                        }
+                        row.gf += isHome ? homeG : awayG;
+                        row.ga += isHome ? awayG : homeG;
+                    }
+
+                    row.gd = row.gf - row.ga;
+                    return row;
+                })
+            );
+
+            return rows
+                .filter((r): r is NonNullable<typeof r> => r !== null)
+                .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
+                .map((r, i) => ({ ...r, pos: `${i + 1}` }));
+        },
+        [seasonId]
+    );
+
+    if (!table) {
+        return <div className="border border-zinc-700/60 rounded-lg bg-zinc-900/80 p-3 text-zinc-500 text-xs">Loading table...</div>;
+    }
+
     return (
         <div className="border border-zinc-700/60 rounded-lg bg-zinc-900/80 p-3">
             {/* Title holder */}
@@ -170,26 +197,26 @@ function StandingsTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    {LEAGUE_TABLE.map((row) => (
+                    {table.map((row) => (
                         <tr
-                            key={row.pos}
+                            key={row.club.id}
                             className={cn(
                                 'cursor-pointer hover:bg-zinc-800/30 transition-colors',
-                                row.highlighted && 'bg-zinc-800/50'
+                                row.club.id === manager?.clubId && 'bg-zinc-800/50'
                             )}
                         >
                             <td className="py-px text-zinc-500 text-[10px]">{row.pos}</td>
                             <td className="py-px">
-                                <TeamBadge color={row.badge} size="xs" />
+                                <TeamBadge color={row.club.color ?? 'bg-zinc-700'} size="xs" />
                             </td>
                             <td className="py-px">
                                 <span
                                     className={cn(
                                         'truncate text-[11px]',
-                                        row.highlighted ? 'text-teal-400 font-medium' : 'text-zinc-300'
+                                        row.club.id === manager?.clubId ? 'text-teal-400 font-medium' : 'text-zinc-300'
                                     )}
                                 >
-                                    {row.team}
+                                    {row.club.name}
                                 </span>
                             </td>
                             <td className="py-px text-right text-zinc-600 text-[10px]">{row.p}</td>
@@ -207,6 +234,47 @@ function StandingsTable() {
 }
 
 function MatchesResults() {
+    const dateTime = useDateTime((state) => state.dateTime);
+    const seasonId = 1;
+    const fixtures = useLiveQuery(
+        async () => {
+            const rounds = await db.table('round').where('seasonId').equals(seasonId).toArray();
+            const roundIds = rounds.map((r) => r.id);
+            if (roundIds.length === 0) return [];
+
+            const matches = await db
+                .table('match')
+                .where('roundId')
+                .anyOf(roundIds)
+                .filter((m) => new Date(m.date) >= dateTime)
+                .toArray();
+
+            matches.sort((a, b) => a.date.localeCompare(b.date));
+            const next = matches.slice(0, 9);
+
+            return await Promise.all(
+                next.map(async (m) => {
+                    const [home, away] = await Promise.all([
+                        db.table('club').get(m.homeClubId),
+                        db.table('club').get(m.awayClubId),
+                    ]);
+                    return {
+                        id: m.id,
+                        home: home?.name ?? 'Unknown',
+                        away: away?.name ?? 'Unknown',
+                        homeBadge: home?.color ?? 'bg-zinc-700',
+                        awayBadge: away?.color ?? 'bg-zinc-700',
+                    };
+                })
+            );
+        },
+        [seasonId, dateTime]
+    );
+
+    if (!fixtures) {
+        return <div className="border border-zinc-700/60 rounded-lg bg-zinc-900/80 p-3 text-zinc-500 text-xs">Loading matches...</div>;
+    }
+
     return (
         <div className="border border-zinc-700/60 rounded-lg bg-zinc-900/80 p-3 flex flex-col">
             <div className="flex items-center justify-between mb-2">
@@ -225,12 +293,12 @@ function MatchesResults() {
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">League Phase - Kick Off 20:00</p>
 
             <div className="space-y-0">
-                {MATCHES.map((m, i) => (
+                {fixtures.map((m, i) => (
                     <div
                         key={i}
                         className={cn(
                             'grid grid-cols-[1fr_30px_1fr] gap-1 py-1 px-1 text-xs cursor-pointer hover:bg-zinc-800/40 transition-colors rounded',
-                            m.away === 'Juventus' && 'bg-zinc-800/50'
+                            i === 0 && 'bg-zinc-800/50'
                         )}
                     >
                         <div className="flex items-center gap-1.5">

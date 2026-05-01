@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SQUAD_PLAYERS, type Player } from './data';
 import { Pitch } from './components/pitch';
 import { PlayerList } from './components/player-list';
-import { Helmet } from '@packages/react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { useTactics } from './use-tactics';
 import { FORMATIONS } from './formations';
 import { GHOST_SLOTS, SNAP_RADIUS } from './ghost-grid';

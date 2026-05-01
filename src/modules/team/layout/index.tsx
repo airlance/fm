@@ -1,4 +1,4 @@
-import { Helmet } from '@packages/react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { Wrapper } from './components/wrapper';
 import { LayoutProvider } from './components/context';
 

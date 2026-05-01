@@ -11,7 +11,6 @@ import {
     LucideInbox,
     Shirt,
     Home,
-    ClipboardList,
     LucideRefreshCw,
     Target,
     DatabaseBackup,
@@ -19,10 +18,6 @@ import {
     BriefcaseMedicalIcon,
     CalendarIcon,
     Search,
-    TrendingUpIcon,
-    Banknote,
-    Briefcase,
-    ShieldPlus,
     Repeat,
     Trophy,
     Dumbbell
@@ -51,11 +46,6 @@ const MENU_CONFIG: MenuConfig[] = [
         title: 'Squad',
         path: '/squad',
         icon: Shirt,
-    },
-    {
-        title: 'Squad Planner',
-        path: '/planner',
-        icon: ClipboardList,
     },
     {
         title: 'Dynamics',
@@ -106,27 +96,7 @@ const MENU_CONFIG: MenuConfig[] = [
         title: 'Transfers',
         path: '/transfers',
         icon: Repeat,
-    },
-    {
-        title: 'Club Info',
-        path: '/club-info',
-        icon: ShieldPlus,
-    },
-    {
-        title: 'Club Vision',
-        path: '/club-vision',
-        icon: Briefcase,
-    },
-    {
-        title: 'Finances',
-        path: '/finances',
-        icon: Banknote,
-    },
-    {
-        title: 'Dev. Centre',
-        path: '/dev-centre',
-        icon: TrendingUpIcon,
-    },
+    }
 ];
 
 export function SidebarMenu() {
