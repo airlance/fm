@@ -7,9 +7,10 @@ export default function MatchesModule() {
     return (
         <Routes>
             <Route element={<Layout />}>
-                <Route index element={<Navigate to="results" replace />} />
+                <Route index element={<Navigate to="results/2" replace />} />
 
                 <Route path="results" element={<Page />} />
+                <Route path="results/:competitionId" element={<Page />} />
             </Route>
         </Routes>
     )

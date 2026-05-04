@@ -58,6 +58,9 @@ export function Header() {
 
     const teamIdForPlayers = leaguePlayerMatch ? Number(leaguePlayerMatch[2]) : null;
     const leagueIdForPlayers = leaguePlayerMatch ? Number(leaguePlayerMatch[1]) : null;
+    const matchesResultMatch = pathname.match(/^\/matches\/results\/(\d+)(?:\/|$)/);
+    const matchesCompetitionId = matchesResultMatch ? Number(matchesResultMatch[1]) : null;
+    const isMatchesResultsPage = matchesCompetitionId !== null;
 
     const leagueTeams = useLiveQuery(
         async () => {
@@ -140,6 +143,20 @@ export function Header() {
                 };
             }
 
+            if (isMatchesResultsPage && matchesCompetitionId !== null) {
+                const competition = await db.table('competition').get(matchesCompetitionId);
+                const seasons = await db.table('season').where('competitionId').equals(matchesCompetitionId).toArray();
+                const activeSeason =
+                    seasons.find((s) => s.isActive) ||
+                    [...seasons].sort((a, b) => (b.id || 0) - (a.id || 0))[0];
+
+                return {
+                    name: `${competition?.name || `League ${matchesCompetitionId}`} Results`,
+                    subtitle: `Season: ${activeSeason?.name || '-'}`,
+                    logoUrl: undefined,
+                };
+            }
+
             return {
                 number: 22,
                 name: "YEHOR KLYMENCHUK",
@@ -147,7 +164,7 @@ export function Header() {
                 logoUrl: undefined,
             };
         },
-        [pathname, isLeaguePage, isLeagueTeamPage, isLeaguePlayerPage, currentLeagueId, currentClubId, currentPlayerId]
+        [pathname, isLeaguePage, isLeagueTeamPage, isLeaguePlayerPage, isMatchesResultsPage, currentLeagueId, currentClubId, currentPlayerId, matchesCompetitionId]
     );
 
     const browseLeague = (direction: 'up' | 'down') => {
@@ -200,6 +217,18 @@ export function Header() {
     };
 
     const browseEntities = (direction: 'up' | 'down') => {
+        if (isMatchesResultsPage && matchesCompetitionId !== null && leagues && leagues.length > 0) {
+            const currentIndex = leagues.findIndex((league) => league.id === matchesCompetitionId);
+            if (currentIndex !== -1) {
+                const nextIndex =
+                    direction === 'up'
+                        ? (currentIndex - 1 + leagues.length) % leagues.length
+                        : (currentIndex + 1) % leagues.length;
+                navigate(`/matches/results/${leagues[nextIndex].id}`);
+                return;
+            }
+        }
+
         if (isLeaguePlayerPage) {
             browseLeaguePlayer(direction);
             return;
@@ -212,6 +241,7 @@ export function Header() {
 
         browseLeague(direction);
     };
+    const canBrowseEntities = isLeaguePage || isMatchesResultsPage;
 
     return (
         <div className="flex flex-col">
@@ -268,14 +298,14 @@ export function Header() {
                     <div className="flex flex-col gap-0">
                         <button
                             onClick={() => browseEntities('up')}
-                            disabled={!isLeaguePage}
+                            disabled={!canBrowseEntities}
                             className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <ChevronUp className="size-3.5" />
                         </button>
                         <button
                             onClick={() => browseEntities('down')}
-                            disabled={!isLeaguePage}
+                            disabled={!canBrowseEntities}
                             className="flex items-center justify-center h-4 w-5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <ChevronDown className="size-3.5" />

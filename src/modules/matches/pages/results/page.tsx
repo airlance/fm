@@ -2,6 +2,8 @@ import db from '@/../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDateTime } from '@/state/useDateTime';
 import { useManager } from '@/hooks/useManager';
+import { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 
 type GameType = {
     date: Date;
@@ -12,6 +14,8 @@ type GameType = {
 }; 
 
 export function Page() {
+    const { competitionId } = useParams();
+    const parsedCompetitionId = useMemo(() => Number(competitionId), [competitionId]);
 
     const dateTime = useDateTime(state => state.dateTime);
 
@@ -19,11 +23,24 @@ export function Page() {
 
     const games = useLiveQuery<GameType[]>(
         async () => {
-            const matches = await db.table('match').where('date').between(
+            const targetCompetitionId = Number.isFinite(parsedCompetitionId) && parsedCompetitionId > 0 ? parsedCompetitionId : 2;
+
+            const seasons = await db.table('season').where('competitionId').equals(targetCompetitionId).toArray();
+            if (seasons.length === 0) return [];
+
+            const activeSeason =
+                seasons.find((s) => s.isActive) ||
+                [...seasons].sort((a, b) => (b.id || 0) - (a.id || 0))[0];
+
+            const rounds = await db.table('round').where('seasonId').equals(activeSeason.id).toArray();
+            const roundIds = rounds.map((r) => r.id);
+            if (roundIds.length === 0) return [];
+
+            const matchesByDate = await db.table('match').where('date').between(
                 new Date(dateTime.getTime() - 5 * 60 * 60 * 1000).toISOString().slice(0, 19), 
                 new Date(dateTime.getTime() + 5 * 60 * 60 * 1000).toISOString().slice(0, 19)
             ).toArray();
-            // .equals(dateTime.toISOString().slice(0, 19)).toArray();
+            const matches = matchesByDate.filter((m) => roundIds.includes(m.roundId));
             
             const games = await Promise.all(matches.map(async (match) => {
                 const [homeClub, awayClub] = await Promise.all([
@@ -39,7 +56,7 @@ export function Page() {
                 };
             }));
             return games;
-        }, [dateTime, manager?.clubId]
+        }, [dateTime, manager?.clubId, parsedCompetitionId]
     );
 
     if (games == undefined) {
