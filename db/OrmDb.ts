@@ -5,7 +5,7 @@ export default class OrmDb extends Dexie{
     async oneOrError<T>(tableName: string, param: any): Promise<T> {
 
         if (typeof param === 'object' && param !== null && !Array.isArray(param)) {
-            const row = await this.table(tableName).where(param).first();
+            const row = await (this.table(tableName).where(param) as any).first(); //first not exist in typescript
             if (!row){
                 const str = JSON.stringify(param);
                 throw new DbError(`Row with params ${str} not found in ${tableName}`);

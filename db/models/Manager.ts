@@ -25,28 +25,10 @@ export class Manager{
         return await db.table("competition").bulkGet(seasons.map(s => s.competitionId));
     }
 
-    async schedule(dateTime: Date){
-
-        const matches = await db.table('match').where('homeClubId').equals(this.clubId).and(
-                match => new Date(match.date) >= dateTime
-            ).toArray();
-            const awayMatches = await db.table('match').where('awayClubId').equals(this.clubId).and(
-                match => new Date(match.date) >= dateTime
-            ).toArray();
-            const allMatches = [...matches, ...awayMatches];
-            allMatches.sort((a, b) => a.date.localeCompare(b.date));
-            const fixtures = await Promise.all(allMatches.map(async (match) => {
-                const [homeClub, awayClub] = await Promise.all([
-                    db.table('club').get(match.homeClubId),
-                    db.table('club').get(match.awayClubId)
-                ]);
-                return {
-                    date: new Date(match.date).toLocaleDateString(),
-                    venue: match.venue,
-                    homeClub: homeClub,
-                    awayClub: awayClub,
-                };
-            }));
-            return fixtures;
+    async getClub(){
+        if (!this.clubId){
+            return null;
+        }
+        return await db.table('club').get(this.clubId);
     }
 }

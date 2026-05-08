@@ -1,5 +1,6 @@
 import OrmDb from './OrmDb';
 import { Competion, Club, Season, Manager } from './models';
+import { Match } from './models/Match';
 
 const db = new OrmDb('FootballDatabase');
 
@@ -22,5 +23,6 @@ db.table('competition').mapToClass(Competion);
 db.table('club').mapToClass(Club);
 db.table('season').mapToClass(Season);
 db.table('manager').mapToClass(Manager);
+db.table('match').mapToClass(Match);
 
 export default db;
